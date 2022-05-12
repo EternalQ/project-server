@@ -5,10 +5,11 @@ import (
 	"errors"
 
 	"github.com/eternalq/project-server/internal/api/models"
+	"github.com/jmoiron/sqlx"
 )
 
 type UserRepository struct {
-	store *Store
+	DB sqlx.DB
 }
 
 //TODO: change to procedure calling
@@ -21,7 +22,7 @@ func (r *UserRepository) Create(u *models.User) error {
 		return err
 	}
 
-	return r.store.db.QueryRow(
+	return r.DB.QueryRow(
 		"insert into users (email, encrypted_password) values ($1, $2) returning id",
 		u.Email,
 		u.EncryptedPassword,
@@ -31,7 +32,7 @@ func (r *UserRepository) Create(u *models.User) error {
 //TODO: change to procedure calling
 func (r *UserRepository) Find(id int) (*models.User, error) {
 	u := &models.User{}
-	if err := r.store.db.QueryRow(
+	if err := r.DB.QueryRow(
 		"select id, email, encrypted_password from users where id = $1",
 		id,
 	).Scan(&u.ID, &u.Email, &u.EncryptedPassword); err != nil {
@@ -48,7 +49,7 @@ func (r *UserRepository) Find(id int) (*models.User, error) {
 //TODO: change to procedure calling
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	u := &models.User{}
-	if err := r.store.db.QueryRow(
+	if err := r.DB.QueryRow(
 		"select id, email, encrypted_password from users where email = $1",
 		email,
 	).Scan(&u.ID, &u.Email, &u.EncryptedPassword); err != nil {

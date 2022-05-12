@@ -2,49 +2,37 @@ CREATE TABLE "users" (
     "id" BIGSERIAL PRIMARY KEY,
     "email" text UNIQUE NOT NULL,
     "encrypted_password" text NOT NULL,
-    "created_at" timestamp
-);
-
-CREATE TABLE "photos" (
-    "id" BIGSERIAL PRIMARY KEY,
-    "url" text NOT NULL
+    "created_at" timestamp NOT NULL
 );
 
 CREATE TABLE "posts" (
     "id" BIGSERIAL PRIMARY KEY,
     "text" text,
     "created_at" timestamp NOT NULL,
-    "photo_id" bigint,
+    "photo_url" text,
     "user_id" bigint NOT NULL,
-    FOREIGN KEY("photo_id") REFERENCES "photos" ("id"),
-    FOREIGN KEY("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
-);
-
-CREATE TABLE "tags" (
-    "id" BIGSERIAL PRIMARY KEY,
-    "tag" text NOT NULL UNIQUE
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "post_tags" (
     "post_id" bigint NOT NULL,
-    "tag_id" bigint NOT NULL,
-    FOREIGN KEY("post_id") REFERENCES "posts" ("id") ON DELETE CASCADE,
-    FOREIGN KEY("tag_id") REFERENCES "tags" ("id")
+    "tag" text NOT NULL,
+    FOREIGN KEY ("post_id") REFERENCES "posts" ("id") ON DELETE CASCADE
 );
 
-CREATE TABLE "albums" (
+CREATE TABLE "album" (
     "id" BIGSERIAL PRIMARY KEY,
     "name" text,
     "created_at" timestamp NOT NULL,
     "user_id" bigint NOT NULL,
-    FOREIGN KEY("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "album_photos" (
-    "photo_id" bigint NOT NULL,
+    "photo_url" text NOT NULL,
     "album_id" bigint NOT NULL,
-    FOREIGN KEY("album_id") REFERENCES "albums" ("id") ON DELETE CASCADE,
-    FOREIGN KEY("photo_id") REFERENCES "photos" ("id")
+    -- FOREIGN KEY ("photo_url") REFERENCES "photos" ("url") on DELETE CASCADE,
+    FOREIGN KEY ("album_id") REFERENCES "album" ("id") ON DELETE CASCADE
 );
 
 CREATE TABLE "comments" (
@@ -53,6 +41,6 @@ CREATE TABLE "comments" (
     "created_at" timestamp NOT NULL,
     "post_id" bigint NOT NULL,
     "user_id" bigint NOT NULL,
-    FOREIGN KEY("user_id") REFERENCES "users" ("id") ON DELETE CASCADE,
-    FOREIGN KEY("post_id") REFERENCES "posts" ("id") ON DELETE CASCADE
+    FOREIGN KEY ("post_id") REFERENCES "posts" ("id") ON DELETE CASCADE,
+    FOREIGN KEY ("user_id") REFERENCES "users" ("id")
 );
