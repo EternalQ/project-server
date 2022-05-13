@@ -32,7 +32,7 @@ WHERE c.id = ret_id;
 END $$ LANGUAGE plpgsql;
 
 -- find by post id
-CREATE OR REPLACE FUNCTION find_comment(_post_id BIGINT) RETURNS TABLE (
+CREATE OR REPLACE FUNCTION find_comments(_post_id BIGINT) RETURNS TABLE (
         id bigint,
         "comment" text,
         created_at timestamp,

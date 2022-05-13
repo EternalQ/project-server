@@ -9,10 +9,25 @@ type CommentRepository struct {
 	DB sqlx.DB
 }
 
-func (r *CommentRepository) Create(com *models.Comment) (*models.Comment, error) {
-	return nil, nil
+const (
+	CREATE_COMMENT = `select create_comment(:comment, :created_at, :post_id, :user_id)`
+	FIND_COMMENTS  = `select find_comments(?)`
+)
+
+func (r *CommentRepository) Create(c *models.Comment) error {
+	rows, err := r.DB.NamedQuery(CREATE_COMMENT, c)
+	if err != nil {
+		return err
+	}
+
+	return rows.StructScan(c)
 }
 
 func (r *CommentRepository) FindByPostID(id int) ([]models.Comment, error) {
-return nil, nil
+	cc := []models.Comment{}
+	if err := r.DB.Select(cc, FIND_COMMENTS, id); err != nil {
+		return nil, err
+	}
+
+	return cc, nil
 }

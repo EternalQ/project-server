@@ -1,9 +1,6 @@
 package store
 
 import (
-	"database/sql"
-	"errors"
-
 	"github.com/eternalq/project-server/internal/api/models"
 	"github.com/jmoiron/sqlx"
 )
@@ -12,7 +9,12 @@ type UserRepository struct {
 	DB sqlx.DB
 }
 
-//TODO: change to procedure calling
+const (
+	CREATE_USER = `select * from create_user($1, $2, $3)`
+	FIND_USER   = `select * from find_user($1)`
+	ALL_USERS   = `select * from all_users()`
+)
+
 func (r *UserRepository) Create(u *models.User) error {
 	if err := u.Validate(); err != nil {
 		return err
@@ -22,43 +24,35 @@ func (r *UserRepository) Create(u *models.User) error {
 		return err
 	}
 
-	return r.DB.QueryRow(
-		"insert into users (email, encrypted_password) values ($1, $2) returning id",
-		u.Email,
-		u.EncryptedPassword,
-	).Scan(&u.ID)
+	return r.DB.Get(u, CREATE_USER, u.Email, u.EncryptedPassword, u.CreatedAt)
 }
 
-//TODO: change to procedure calling
 func (r *UserRepository) Find(id int) (*models.User, error) {
 	u := &models.User{}
-	if err := r.DB.QueryRow(
-		"select id, email, encrypted_password from users where id = $1",
-		id,
-	).Scan(&u.ID, &u.Email, &u.EncryptedPassword); err != nil {
-		if err != nil {
-			return nil, errors.New("record not found")
-		}
 
+	if err := r.DB.Get(u, FIND_USER, id); err != nil {
 		return nil, err
 	}
 
 	return u, nil
 }
 
-//TODO: change to procedure calling
 func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 	u := &models.User{}
-	if err := r.DB.QueryRow(
-		"select id, email, encrypted_password from users where email = $1",
-		email,
-	).Scan(&u.ID, &u.Email, &u.EncryptedPassword); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, errors.New("record not found")
-		}
 
+	if err := r.DB.Get(u, FIND_USER, email); err != nil {
 		return nil, err
 	}
 
 	return u, nil
+}
+
+func (r *UserRepository) GetAll() ([]models.User, error) {
+	uu := []models.User{}
+
+	if err := r.DB.Select(uu, ALL_USERS); err != nil {
+		return nil, err
+	}
+
+	return uu, nil
 }

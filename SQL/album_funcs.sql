@@ -28,20 +28,41 @@ GROUP BY a.id;
 
 END $$ LANGUAGE plpgsql;
 
-SELECT create_album('test album', 1652175676, 2);
+SELECT create_album('test album', 1652175676, 4);
 
 -- delete by id
-CREATE OR REPLACE FUNCTION delete_album(_id bigint) RETURNS int AS $$ WITH del_rows AS (
-        DELETE FROM album
-        WHERE album.id = $1
-        RETURNING *
-    )
-SELECT COUNT(*)
-FROM del_rows;
+CREATE OR REPLACE FUNCTION delete_album(_id bigint) RETURNS TABLE (
+        id bigint,
+        name text,
+        created_at timestamp,
+        photos_url text []
+    ) AS $$
+DECLARE d_uid BIGINT;
 
-$$ language SQL;
+BEGIN
+DELETE FROM album
+WHERE album.id = $1
+RETURNING album.user_id INTO d_uid;
 
-SELECT delete_album(4);
+RETURN query
+SELECT a.id AS id,
+    a.name AS name,
+    a.created_at AS created_at,
+    array_agg(ap.photo_url) AS photos_url
+FROM album AS a
+    LEFT JOIN album_photos AS ap ON ap.album_id = a.id
+WHERE a.user_id = d_uid
+GROUP BY a.id;
+
+END $$ LANGUAGE plpgsql;
+
+SELECT delete_album(8);
+
+SELECT u.id AS id,
+    array_agg(a.id)
+FROM album AS a
+    INNER JOIN users AS u ON a.user_id = u.id
+GROUP BY u.id;
 
 -- find album by id
 CREATE OR REPLACE FUNCTION find_album(_id BIGINT) RETURNS TABLE (

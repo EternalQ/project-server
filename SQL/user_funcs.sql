@@ -1,20 +1,25 @@
 -- user creating returns his id
-CREATE FUNCTION create_user(
-    email text,
-    encrypted_password text,
-    created_at bigint
-) RETURNS int AS $$
-INSERT INTO users (
-        email,
-        encrypted_password,
-        created_at
-    )
-VALUES (
-        email,
-        encrypted_password,
-        to_timestamp(created_at)
-    )
-RETURNING id $$ LANGUAGE SQL;
+CREATE OR REPLACE FUNCTION create_user(
+        email text,
+        encrypted_password text,
+        created_at timestamp
+    ) RETURNS SETOF users AS $$
+DECLARE rid bigint;
+
+BEGIN
+INSERT INTO users (email, encrypted_password, created_at)
+VALUES ($1, $2, $3)
+RETURNING users.id INTO rid;
+
+RETURN query
+SELECT *
+FROM users
+WHERE users.id = rid;
+
+END $$ LANGUAGE plpgsql;
+
+select * from users
+SELECT create_user('test5', 'test', 1652114047);
 
 -- get all users
 DROP FUNCTION IF EXISTS all_users();

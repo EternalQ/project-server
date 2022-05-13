@@ -47,25 +47,48 @@ SELECT create_post('haha', 1652131509, 'photo', 2);
 -- delete post
 DROP FUNCTION IF EXISTS delete_post;
 
-CREATE FUNCTION delete_post(id bigint) RETURNS int AS $$ WITH del_rows AS (
-    DELETE FROM posts
-    WHERE posts.id = $1
-    RETURNING *
-)
-SELECT COUNT(*)
-FROM del_rows;
-
-$$ LANGUAGE SQL;
-
--- find post by tag
-CREATE FUNCTION find_post(tag text) RETURNS TABLE(
+CREATE FUNCTION delete_post(_id bigint) RETURNS TABLE(
     id BIGINT,
     "text" text,
     created_at timestamp,
     photo_url text,
     user_email text,
-    comments_count int
+    comments_count BIGINT
 ) AS $$
+DECLARE d_uid bigint;
+
+BEGIN
+DELETE FROM posts
+WHERE posts.id = $1
+RETURNING posts.user_id INTO d_uid;
+
+RETURN query
+SELECT p.id AS id,
+    p.text AS "text",
+    p.created_at AS created_at,
+    p.photo_url AS photo_url,
+    u.email AS user_email,
+    COUNT(c.*) AS comments_count
+FROM posts AS p
+    INNER JOIN users AS u ON u.id = p.user_id
+    LEFT JOIN comments AS c ON c.post_id = p.id
+WHERE p.user_id = d_uid
+GROUP BY p.id,
+    u.email;
+
+END $$ LANGUAGE plpgsql;
+
+SELECT delete_post(23);
+
+-- find post by tag
+CREATE OR REPLACE FUNCTION find_post(tag text) RETURNS TABLE(
+        id BIGINT,
+        "text" text,
+        created_at timestamp,
+        photo_url text,
+        user_email text,
+        comments_count int
+    ) AS $$
 SELECT p.id AS id,
     p.text AS "text",
     p.created_at AS created_at,
@@ -78,7 +101,8 @@ FROM posts AS p
     LEFT JOIN post_tags AS pt ON pt.post_id = p.id
 WHERE pt.tag = $1
 GROUP BY p.id,
-    u.email;
+    u.email
+ORDER BY p.created_at;
 
 $$ LANGUAGE SQL;
 
@@ -91,7 +115,7 @@ DECLARE tags text [];
 BEGIN tags = string_to_array($2, ',');
 
 INSERT INTO post_tags
-VALUES($1, unnest(tags));
+VALUES($1, trim(unnest(tags)));
 
 DELETE FROM post_tags t1 USING post_tags t2
 WHERE t1.ctid > t2.ctid
@@ -127,19 +151,19 @@ FROM posts AS p
     LEFT JOIN comments AS c ON c.post_id = p.id
 GROUP BY p.id,
     u.email
-ORDER BY p.id
+ORDER BY p.created_at
 LIMIT $1 OFFSET $2;
 
 $$ LANGUAGE SQL;
 
 -- Tests
 SELECT *
-FROM post_tags;
+FROM posts;
 
 SELECT get_posts(2, 2);
 
-SELECT add_post_tags(9, 'hehe,haha,huhu');
+SELECT add_post_tags(9, 'tag1 , tag2,tag3');
 
 SELECT delete_post(7);
 
-SELECT find_post('tag');
+SELECT find_post('tag2');
