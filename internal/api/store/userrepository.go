@@ -13,6 +13,8 @@ const (
 	CREATE_USER = `select * from create_user($1, $2, $3)`
 	FIND_USER   = `select * from find_user($1)`
 	ALL_USERS   = `select * from all_users()`
+	USER_ALBUMS = `select * from user_albums(?)`
+	USER_POSTS  = `select * from user_posts(?)`
 )
 
 func (r *UserRepository) Create(u *models.User) error {
@@ -55,4 +57,24 @@ func (r *UserRepository) GetAll() ([]models.User, error) {
 	}
 
 	return uu, nil
+}
+
+func (r *UserRepository) GetPosts(id int) ([]models.Post, error) {
+	pp := []models.Post{}
+
+	if err := r.DB.Select(pp, USER_POSTS, id); err != nil {
+		return nil, err
+	}
+
+	return pp, nil
+}
+
+func (r *UserRepository) GetAlbums(id int) ([]models.Album, error) {
+	aa := []models.Album{}
+
+	if err := r.DB.Select(aa, USER_ALBUMS, id); err != nil {
+		return nil, err
+	}
+
+	return aa, nil
 }

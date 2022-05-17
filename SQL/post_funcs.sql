@@ -106,6 +106,31 @@ ORDER BY p.created_at;
 
 $$ LANGUAGE SQL;
 
+-- find post by user_id
+CREATE OR REPLACE FUNCTION user_posts(_user_id BIGINT) RETURNS TABLE(
+        id BIGINT,
+        "text" text,
+        created_at timestamp,
+        photo_url text,
+        user_email text,
+        comments_count int
+    ) AS $$
+SELECT p.id AS id,
+    p.text AS "text",
+    p.created_at AS created_at,
+    p.photo_url AS photo_url,
+    u.email AS user_email,
+    COUNT(c) AS comments_count
+FROM posts AS p
+    INNER JOIN users AS u ON u.id = p.user_id
+    LEFT JOIN comments AS c ON c.post_id = p.id
+WHERE u.id = $1
+GROUP BY p.id,
+    u.email
+ORDER BY p.created_at;
+
+$$ LANGUAGE SQL;
+
 -- add post tags with tags string separated by comma
 DROP FUNCTION IF EXISTS add_post_tags;
 

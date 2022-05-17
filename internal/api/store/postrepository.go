@@ -10,11 +10,11 @@ type PostRepository struct {
 }
 
 const (
-	CREATE_POST   = `SELECT create_post(:text, :created_at, :photo_url, :user_id);`
-	DELETE_POST   = `SELECT delete_post(?);`
-	FIND_POST     = `SELECT find_post(?);`              //by tag
-	GET_POSTS     = `SELECT get_posts(:id, :tags_str);` //page size and number
-	ADD_POST_TAGS = `SELECT add_post_tags(?, ?)`        //post id and tags string
+	CREATE_POST   = `SELECT * from create_post(:text, :created_at, :photo_url, :user_id);`
+	DELETE_POST   = `SELECT * from delete_post(?);`
+	FIND_POST     = `SELECT * from find_post(?);`              //by tag
+	GET_POSTS     = `SELECT * from get_posts(:id, :tags_str);` //page size and number
+	ADD_POST_TAGS = `SELECT * from add_post_tags(?, ?)`        //post id and tags string
 )
 
 // also insert post tags
@@ -49,7 +49,7 @@ func (r *PostRepository) FindByTag(tag string) (*models.Post, error) {
 	return p, nil
 }
 
-func (r *PostRepository) GetLast20(pageSize, pageNum int) ([]models.Post, error) {
+func (r *PostRepository) GetLasts(pageSize, pageNum int) ([]models.Post, error) {
 	pp := []models.Post{}
 	if err := r.DB.Select(pp, GET_POSTS, pageSize, pageNum); err != nil {
 		return nil, err

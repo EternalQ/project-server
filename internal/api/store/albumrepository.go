@@ -10,11 +10,11 @@ type AlbumRepository struct {
 }
 
 const (
-	CREATE_ALBUM = `select create_album(:name, :created_at, :user_id)`
-	DELETE_ALBUM = `select delete_album(?)`
-	FIND_ALBUM   = `select find_album(?)`
-	ADD_PHOTO    = `select add_photo(?, ?)`
-	REMOVE_PHOTO = `select remove_photo(?, ?)`
+	CREATE_ALBUM = `select * from create_album(:name, :created_at, :user_id)`
+	DELETE_ALBUM = `select * from delete_album(?)`
+	FIND_ALBUM   = `select * from find_album(?)`
+	ADD_PHOTO    = `select * from add_photo(?, ?)`
+	REMOVE_PHOTO = `select * from remove_photo(?, ?)`
 )
 
 func (r *AlbumRepository) Create(alb *models.Album) error {

@@ -89,9 +89,9 @@ func (user *User) generateJWT() (string, error) {
 	return token.SignedString(jwtKey)
 }
 
-func (u *User) ValidateToken() error {
+func ValidateToken(tokenString string) error {
 	token, err := jwt.ParseWithClaims(
-		u.TokenString,
+		tokenString,
 		&JWTClaim{},
 		func(token *jwt.Token) (interface{}, error) {
 			return []byte(jwtKey), nil

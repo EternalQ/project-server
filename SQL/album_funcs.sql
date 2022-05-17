@@ -84,6 +84,25 @@ $$ language SQL;
 
 SELECT find_album(2);
 
+-- find albums by user_id
+CREATE OR REPLACE FUNCTION user_albums(_user_id BIGINT) RETURNS TABLE (
+        id bigint,
+        name text,
+        created_at timestamp,
+        photos_url text []
+    ) AS $$
+SELECT a.id AS id,
+    a.name AS name,
+    a.created_at AS created_at,
+    array_agg(ap.photo_url) AS photos_url
+FROM album AS a
+    INNER JOIN users AS u ON u.id = a.user_id
+    LEFT JOIN album_photos AS ap ON ap.album_id = a.id
+WHERE u.id = $1
+GROUP BY a.id;
+
+$$ language SQL;
+
 -- add photo in album
 CREATE OR REPLACE FUNCTION add_photo(_album_id bigint, _photo_url text) RETURNS TABLE (
         id bigint,
