@@ -10,22 +10,21 @@ type CommentRepository struct {
 }
 
 const (
-	CREATE_COMMENT = `select create_comment(:comment, :created_at, :post_id, :user_id)`
-	FIND_COMMENTS  = `select find_comments(?)`
+	CREATE_COMMENT = `select * from create_comment($1, $2, $3, $4)`
+	FIND_COMMENTS  = `select * from find_comments($1)`
 )
 
 func (r *CommentRepository) Create(c *models.Comment) error {
-	rows, err := r.DB.NamedQuery(CREATE_COMMENT, c)
-	if err != nil {
+	if err := r.DB.Get(c, CREATE_COMMENT, c.Comment, c.CreatedAt, c.PostID, c.UserID); err != nil {
 		return err
 	}
 
-	return rows.StructScan(c)
+	return nil
 }
 
 func (r *CommentRepository) FindByPostID(id int) ([]models.Comment, error) {
 	cc := []models.Comment{}
-	if err := r.DB.Select(cc, FIND_COMMENTS, id); err != nil {
+	if err := r.DB.Select(&cc, FIND_COMMENTS, id); err != nil {
 		return nil, err
 	}
 

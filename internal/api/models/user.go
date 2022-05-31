@@ -17,7 +17,7 @@ type User struct {
 	Password          string    `json:"password,omitempty" db:"-"`
 	EncryptedPassword string    `json:"-" db:"encrypted_password"`
 	CreatedAt         time.Time `json:"created_at" db:"created_at"`
-	TokenString       string    `json:"token"`
+	TokenString       string    `json:"token,omitempty" db:"-"`
 }
 
 func (u *User) NewToken() error {
@@ -52,7 +52,7 @@ func (u *User) BeforCreate() error {
 		u.EncryptedPassword = enc
 	}
 
-	u.CreatedAt = time.Now()
+	u.CreatedAt = time.Now().Round(time.Minute)
 
 	return nil
 }

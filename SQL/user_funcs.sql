@@ -18,8 +18,10 @@ WHERE users.id = rid;
 
 END $$ LANGUAGE plpgsql;
 
-select * from users
-SELECT create_user('test5', 'test', 1652114047);
+SELECT *
+FROM users;
+
+SELECT create_user('admin', 'admin', '2031-06-14 00:00:00');
 
 -- get all users
 DROP FUNCTION IF EXISTS all_users();

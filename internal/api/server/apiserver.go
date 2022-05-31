@@ -20,7 +20,7 @@ func Start() error {
 	store := store.New(db)
 	server := newServer(store)
 
-	if err := server.router.Run("localhost:8080"); err != nil {
+	if err := server.router.Run(":8081"); err != nil {
 		return err
 	}
 

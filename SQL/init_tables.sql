@@ -31,7 +31,6 @@ CREATE TABLE "album" (
 CREATE TABLE "album_photos" (
     "photo_url" text NOT NULL,
     "album_id" bigint NOT NULL,
-    -- FOREIGN KEY ("photo_url") REFERENCES "photos" ("url") on DELETE CASCADE,
     FOREIGN KEY ("album_id") REFERENCES "album" ("id") ON DELETE CASCADE
 );
 

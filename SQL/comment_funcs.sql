@@ -3,7 +3,7 @@ DROP FUNCTION IF EXISTS create_COMMENT;
 
 CREATE FUNCTION create_comment(
     "comm" text,
-    created BIGINT,
+    created timestamp,
     postid BIGINT,
     userid bigint
 ) RETURNS TABLE (
@@ -16,7 +16,7 @@ DECLARE ret_id bigint;
 
 BEGIN
 INSERT INTO comments("comment", created_at, post_id, user_id)
-VALUES($1, to_timestamp($2), $3, $4)
+VALUES($1, $2, $3, $4)
 RETURNING comments.id INTO ret_id;
 
 RETURN query

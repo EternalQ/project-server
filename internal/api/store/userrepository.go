@@ -13,8 +13,8 @@ const (
 	CREATE_USER = `select * from create_user($1, $2, $3)`
 	FIND_USER   = `select * from find_user($1)`
 	ALL_USERS   = `select * from all_users()`
-	USER_ALBUMS = `select * from user_albums(?)`
-	USER_POSTS  = `select * from user_posts(?)`
+	USER_ALBUMS = `select * from user_albums($1)`
+	USER_POSTS  = `select * from user_posts($1)`
 )
 
 func (r *UserRepository) Create(u *models.User) error {
@@ -52,7 +52,7 @@ func (r *UserRepository) FindByEmail(email string) (*models.User, error) {
 func (r *UserRepository) GetAll() ([]models.User, error) {
 	uu := []models.User{}
 
-	if err := r.DB.Select(uu, ALL_USERS); err != nil {
+	if err := r.DB.Select(&uu, ALL_USERS); err != nil {
 		return nil, err
 	}
 
@@ -62,7 +62,7 @@ func (r *UserRepository) GetAll() ([]models.User, error) {
 func (r *UserRepository) GetPosts(id int) ([]models.Post, error) {
 	pp := []models.Post{}
 
-	if err := r.DB.Select(pp, USER_POSTS, id); err != nil {
+	if err := r.DB.Select(&pp, USER_POSTS, id); err != nil {
 		return nil, err
 	}
 
@@ -72,7 +72,7 @@ func (r *UserRepository) GetPosts(id int) ([]models.Post, error) {
 func (r *UserRepository) GetAlbums(id int) ([]models.Album, error) {
 	aa := []models.Album{}
 
-	if err := r.DB.Select(aa, USER_ALBUMS, id); err != nil {
+	if err := r.DB.Select(&aa, USER_ALBUMS, id); err != nil {
 		return nil, err
 	}
 

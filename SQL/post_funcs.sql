@@ -3,7 +3,7 @@ DROP FUNCTION IF EXISTS create_post;
 
 CREATE FUNCTION create_post(
     "txt" text,
-    created BIGINT,
+    created timestamp,
     photourl text,
     userid bigint
 ) RETURNS TABLE(
@@ -23,7 +23,7 @@ INSERT INTO posts(
         photo_url,
         user_id
     )
-VALUES ($1, to_timestamp($2), $3, $4)
+VALUES ($1, $2, $3, $4)
 RETURNING posts.id INTO rid;
 
 RETURN query

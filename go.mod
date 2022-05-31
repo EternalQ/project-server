@@ -5,7 +5,6 @@ go 1.18
 require (
 	github.com/gin-gonic/gin v1.7.7
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible
-	github.com/golang-jwt/jwt/v4 v4.4.1
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/lib/pq v1.10.5
 	golang.org/x/crypto v0.0.0-20220427172511-eb4f295cb31f
@@ -13,7 +12,7 @@ require (
 
 require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
-	github.com/gin-contrib/cors v1.3.1 // indirect
+	github.com/gin-contrib/cors v1.3.1
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.13.0 // indirect
 	github.com/go-playground/universal-translator v0.17.0 // indirect

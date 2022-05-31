@@ -10,48 +10,47 @@ type PostRepository struct {
 }
 
 const (
-	CREATE_POST   = `SELECT * from create_post(:text, :created_at, :photo_url, :user_id);`
-	DELETE_POST   = `SELECT * from delete_post(?);`
-	FIND_POST     = `SELECT * from find_post(?);`              //by tag
-	GET_POSTS     = `SELECT * from get_posts(:id, :tags_str);` //page size and number
-	ADD_POST_TAGS = `SELECT * from add_post_tags(?, ?)`        //post id and tags string
+	CREATE_POST   = `SELECT * from create_post($1, $2, $3, $4);`
+	DELETE_POST   = `SELECT * from delete_post($1);`
+	FIND_POST     = `SELECT * from find_post($1);`        //by tag
+	GET_POSTS     = `SELECT * from get_posts($1, $2);`    //page size and number
+	ADD_POST_TAGS = `SELECT * from add_post_tags($1, $2)` //post id and tags string
 )
 
-// also insert post tags
+// also inserts post tags
 func (r *PostRepository) Create(p *models.Post) error {
-	rows, err := r.DB.NamedQuery(CREATE_POST, p)
-	if err != nil {
+	if err := r.DB.Get(p, CREATE_POST, p.Text, p.CreatedAt, p.PhotoURL, p.UserID); err != nil {
 		return err
 	}
 
-	if _, err := r.DB.NamedExec(ADD_POST_TAGS, p); err != nil {
+	if _, err := r.DB.Exec(ADD_POST_TAGS, p.ID, p.TagsCSV); err != nil {
 		return err
 	}
 
-	return rows.StructScan(p)
+	return nil
 }
 
 func (r *PostRepository) Delete(id int) ([]models.Post, error) {
 	pp := []models.Post{}
-	if err := r.DB.Select(pp, DELETE_POST, id); err != nil {
+	if err := r.DB.Select(&pp, DELETE_POST, id); err != nil {
 		return nil, err
 	}
 
 	return pp, nil
 }
 
-func (r *PostRepository) FindByTag(tag string) (*models.Post, error) {
-	p := &models.Post{}
-	if err := r.DB.Get(p, FIND_POST, tag); err != nil {
+func (r *PostRepository) FindByTag(tag string) ([]models.Post, error) {
+	pp := []models.Post{}
+	if err := r.DB.Select(&pp, FIND_POST, tag); err != nil {
 		return nil, err
 	}
 
-	return p, nil
+	return pp, nil
 }
 
 func (r *PostRepository) GetLasts(pageSize, pageNum int) ([]models.Post, error) {
 	pp := []models.Post{}
-	if err := r.DB.Select(pp, GET_POSTS, pageSize, pageNum); err != nil {
+	if err := r.DB.Select(&pp, GET_POSTS, pageSize, (pageNum-1)*pageSize); err != nil {
 		return nil, err
 	}
 

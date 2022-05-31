@@ -1,26 +1,26 @@
 -- create album
 CREATE OR REPLACE FUNCTION create_album(
         _name text,
-        _created_at bigint,
+        _created_at timestamp,
         _user_id BIGINT
     ) RETURNS TABLE (
         id bigint,
         name text,
         created_at timestamp,
-        photos_url text []
+        photos_url text
     ) AS $$
 DECLARE rid BIGINT;
 
 BEGIN
 INSERT INTO album (name, created_at, user_id)
-VALUES ($1, to_timestamp($2), $3)
+VALUES ($1, $2, $3)
 RETURNING album.id INTO rid;
 
 RETURN query
 SELECT a.id AS id,
     a.name AS name,
     a.created_at AS created_at,
-    array_agg(ap.photo_url) AS photos_url
+    array_to_string(array_agg(ap.photo_url), ',') AS photos_url
 FROM album AS a
     LEFT JOIN album_photos AS ap ON ap.album_id = a.id
 WHERE a.id = rid
@@ -28,14 +28,12 @@ GROUP BY a.id;
 
 END $$ LANGUAGE plpgsql;
 
-SELECT create_album('test album', 1652175676, 4);
-
 -- delete by id
 CREATE OR REPLACE FUNCTION delete_album(_id bigint) RETURNS TABLE (
         id bigint,
         name text,
         created_at timestamp,
-        photos_url text []
+        photos_url text
     ) AS $$
 DECLARE d_uid BIGINT;
 
@@ -48,7 +46,7 @@ RETURN query
 SELECT a.id AS id,
     a.name AS name,
     a.created_at AS created_at,
-    array_agg(ap.photo_url) AS photos_url
+    array_to_string(array_agg(ap.photo_url), ',') AS photos_url
 FROM album AS a
     LEFT JOIN album_photos AS ap ON ap.album_id = a.id
 WHERE a.user_id = d_uid
@@ -56,25 +54,17 @@ GROUP BY a.id;
 
 END $$ LANGUAGE plpgsql;
 
-SELECT delete_album(8);
-
-SELECT u.id AS id,
-    array_agg(a.id)
-FROM album AS a
-    INNER JOIN users AS u ON a.user_id = u.id
-GROUP BY u.id;
-
 -- find album by id
 CREATE OR REPLACE FUNCTION find_album(_id BIGINT) RETURNS TABLE (
         id bigint,
         name text,
         created_at timestamp,
-        photos_url text []
+        photos_url text
     ) AS $$
 SELECT a.id AS id,
     a.name AS name,
     a.created_at AS created_at,
-    array_agg(ap.photo_url) AS photos_url
+    array_to_string(array_agg(ap.photo_url), ',') AS photos_url
 FROM album AS a
     LEFT JOIN album_photos AS ap ON ap.album_id = a.id
 WHERE a.id = $1
@@ -82,19 +72,17 @@ GROUP BY a.id;
 
 $$ language SQL;
 
-SELECT find_album(2);
-
 -- find albums by user_id
 CREATE OR REPLACE FUNCTION user_albums(_user_id BIGINT) RETURNS TABLE (
         id bigint,
         name text,
         created_at timestamp,
-        photos_url text []
+        photos_url text
     ) AS $$
 SELECT a.id AS id,
     a.name AS name,
     a.created_at AS created_at,
-    array_agg(ap.photo_url) AS photos_url
+    array_to_string(array_agg(ap.photo_url), ',') AS photos_url
 FROM album AS a
     INNER JOIN users AS u ON u.id = a.user_id
     LEFT JOIN album_photos AS ap ON ap.album_id = a.id
@@ -108,7 +96,7 @@ CREATE OR REPLACE FUNCTION add_photo(_album_id bigint, _photo_url text) RETURNS 
         id bigint,
         name text,
         created_at timestamp,
-        photos_url text []
+        photos_url text
     ) AS $$
 INSERT INTO album_photos
 VALUES($2, $1);
@@ -121,7 +109,7 @@ WHERE t1.ctid < t2.ctid
 SELECT a.id AS id,
     a.name AS name,
     a.created_at AS created_at,
-    array_agg(ap.photo_url) AS photos_url
+    array_to_string(array_agg(ap.photo_url), ',') AS photos_url
 FROM album AS a
     LEFT JOIN album_photos AS ap ON ap.album_id = a.id
 WHERE a.id = $1
@@ -129,14 +117,12 @@ GROUP BY a.id;
 
 $$ language SQL;
 
-SELECT add_photo(2, 'test1');
-
 -- remove photo from album
 CREATE OR REPLACE FUNCTION remove_photo(_album_id bigint, _photo_url text) RETURNS TABLE (
         id bigint,
         name text,
         created_at timestamp,
-        photos_url text []
+        photos_url text
     ) AS $$
 DELETE FROM album_photos AS ap
 WHERE ap.photo_url = $2
@@ -145,16 +131,10 @@ WHERE ap.photo_url = $2
 SELECT a.id AS id,
     a.name AS name,
     a.created_at AS created_at,
-    array_agg(ap.photo_url) AS photos_url
+    array_to_string(array_agg(ap.photo_url), ',') AS photos_url
 FROM album AS a
     LEFT JOIN album_photos AS ap ON ap.album_id = a.id
 WHERE a.id = $1
 GROUP BY a.id;
 
 $$ language SQL;
-
-SELECT remove_photo(2, 'test1');
-
--- tests
-SELECT *
-FROM album;
